@@ -13,6 +13,7 @@ import android.util.Log;
  */
 public class HabitDBHelper extends SQLiteOpenHelper{
 
+    Context context;
     //tag used to find errors in this particular file
     private String DB_LOG_TAG = "DATABASE_HELPER";
 
@@ -29,6 +30,7 @@ public class HabitDBHelper extends SQLiteOpenHelper{
                 + "AUTOINCREMENT, TITLE TEXT, COMPLETED INTEGER, EXPECTED INTEGER)");
         Log.v(DB_LOG_TAG, "the onCreate method has been called the table has been created");
 
+
     }
 
     @Override
@@ -38,6 +40,7 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         //upon the need to upgrade, the entire table is dropped if it still exists
         habitDb.execSQL("DROP TABLE IF EXISTS " + SQLHabitContract.TABLE_NAME);
         //and here it is recreated by calling the onCreate method again
+        deleteDatabase();
         onCreate(habitDb);
         Log.v(DB_LOG_TAG, "the onUpgrade method has been called and the table has been dropped " +
                 "and recreated");
@@ -59,6 +62,7 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         //table, in order to check that the insert funcation was successful it must not return -1
         //by placing the result in a long variable we can check for the -1 using an if statement
         long result = db.insert(SQLHabitContract.TABLE_NAME,null,contentValues);
+        Log.v("INSERTDATA", "data inserted");
         return result != -1;
     }
 
@@ -67,6 +71,15 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         //a cursor object allows for random read and write, this code allows us to store all of the
         // table data into the cursor res and return it to where the method was called to be shown
         Cursor res = db.rawQuery("select * from " + SQLHabitContract.TABLE_NAME, null);
+
+        StringBuffer buffer = new StringBuffer();
+        while (res.moveToNext()) {
+            buffer.append("Id :" + res.getString(0) + "\n");
+            buffer.append("Name :" + res.getString(1) + "\n");
+            buffer.append("Surname :" + res.getString(2) + "\n");
+            buffer.append("Marks :" + res.getString(3) + "\n\n");
+        }
+        Log.v("READALL", "query performed" + buffer.toString());
         return res;
     }
 
@@ -103,8 +116,24 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getWritableDatabase();
         //a cursor object allows for random read and write, this code allows us to store all of the
         // table data into the cursor res and return it to where the method was called to be shown
-        Cursor res = db.query(SQLHabitContract.TABLE_NAME, new String[]{title}, "_ID = ?", new String[]{"TITLE = ?"}, null, null, null);
+        Cursor res = db.query(SQLHabitContract.TABLE_NAME, new String[]{SQLHabitContract._ID,
+                        SQLHabitContract.COLUMN_NAME_COMPLETED, SQLHabitContract.COLUMN_NAME_EXPECTED},
+                SQLHabitContract.COLUMN_NAME_TITLE + " like " + "'%" + title + "%'", null, null, null, null);
+
+        StringBuffer buffer = new StringBuffer();
+        while (res.moveToNext()) {
+            buffer.append("Id :" + res.getString(0) + "\n");
+            buffer.append("Name :" + res.getString(1) + "\n");
+            buffer.append("Surname :" + res.getString(2) + "\n");
+            buffer.append("Marks :" + res.getString(3) + "\n\n");
+        }
+        Log.v("READALL", "query performed" + buffer.toString());
+
         return res;
+    }
+
+    public void deleteDatabase() {
+        context.deleteDatabase(SQLHabitContract.TABLE_NAME);
     }
 
     //the contract class by which to setup the table
@@ -118,4 +147,5 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         public static final String COLUMN_NAME_EXPECTED = "expected";
 
     }
+
 }
