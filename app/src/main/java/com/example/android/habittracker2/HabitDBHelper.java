@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.BaseColumns;
 import android.util.Log;
 
 /**
@@ -18,7 +17,7 @@ public class HabitDBHelper extends SQLiteOpenHelper{
     private String DB_LOG_TAG = "DATABASE_HELPER";
 
     public HabitDBHelper(Context context) {
-        super(context, SQLHabitContract.TABLE_NAME, null, 1);
+        super(context, HabitContract.SQLHabitContract.TABLE_NAME, null, 1);
     }
 
     //oncreate will create the table with the given columns and value datatypes to be in each column
@@ -26,7 +25,7 @@ public class HabitDBHelper extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase habitDb) {
 
-        habitDb.execSQL("create table " + SQLHabitContract.TABLE_NAME + " (_ID INTEGER PRIMARY KEY "
+        habitDb.execSQL("create table " + HabitContract.SQLHabitContract.TABLE_NAME + " (_ID INTEGER PRIMARY KEY "
                 + "AUTOINCREMENT, TITLE TEXT, COMPLETED INTEGER, EXPECTED INTEGER)");
         Log.v(DB_LOG_TAG, "the onCreate method has been called the table has been created");
 
@@ -38,7 +37,7 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         //upon the need to upgrade, the entire table is deleted
         deleteAllData(habitDb);
         //upon the need to upgrade, the entire table is dropped if it still exists
-        habitDb.execSQL("DROP TABLE IF EXISTS " + SQLHabitContract.TABLE_NAME);
+        habitDb.execSQL("DROP TABLE IF EXISTS " + HabitContract.SQLHabitContract.TABLE_NAME);
         //and here it is recreated by calling the onCreate method again
         deleteDatabase();
         onCreate(habitDb);
@@ -54,14 +53,14 @@ public class HabitDBHelper extends SQLiteOpenHelper{
 
         //we use a variable of content values to take in the values to be set
         ContentValues contentValues = new ContentValues();
-        contentValues.put(SQLHabitContract.COLUMN_NAME_TITLE,title);
-        contentValues.put(SQLHabitContract.COLUMN_NAME_COMPLETED,completed);
-        contentValues.put(SQLHabitContract.COLUMN_NAME_EXPECTED, expected);
+        contentValues.put(HabitContract.SQLHabitContract.COLUMN_NAME_TITLE, title);
+        contentValues.put(HabitContract.SQLHabitContract.COLUMN_NAME_COMPLETED, completed);
+        contentValues.put(HabitContract.SQLHabitContract.COLUMN_NAME_EXPECTED, expected);
 
         //the insert function takes the table name and the content values set and sets it to the
         //table, in order to check that the insert funcation was successful it must not return -1
         //by placing the result in a long variable we can check for the -1 using an if statement
-        long result = db.insert(SQLHabitContract.TABLE_NAME,null,contentValues);
+        long result = db.insert(HabitContract.SQLHabitContract.TABLE_NAME, null, contentValues);
         Log.v("INSERTDATA", "data inserted");
         return result != -1;
     }
@@ -70,7 +69,9 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getWritableDatabase();
         //a cursor object allows for random read and write, this code allows us to store all of the
         // table data into the cursor res and return it to where the method was called to be shown
-        Cursor res = db.rawQuery("select * from " + SQLHabitContract.TABLE_NAME, null);
+        Cursor res = db.query(HabitContract.SQLHabitContract.TABLE_NAME, new String[]{HabitContract.SQLHabitContract._ID, HabitContract.SQLHabitContract.COLUMN_NAME_TITLE,
+                        HabitContract.SQLHabitContract.COLUMN_NAME_COMPLETED, HabitContract.SQLHabitContract.COLUMN_NAME_EXPECTED},
+                null, null, null, null, null);
 
         StringBuffer buffer = new StringBuffer();
         while (res.moveToNext()) {
@@ -88,14 +89,14 @@ public class HabitDBHelper extends SQLiteOpenHelper{
 
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put(SQLHabitContract._ID,id);
-        contentValues.put(SQLHabitContract.COLUMN_NAME_TITLE,title);
-        contentValues.put(SQLHabitContract.COLUMN_NAME_COMPLETED,completed);
-        contentValues.put(SQLHabitContract.COLUMN_NAME_EXPECTED, expected);
+        contentValues.put(HabitContract.SQLHabitContract._ID, id);
+        contentValues.put(HabitContract.SQLHabitContract.COLUMN_NAME_TITLE, title);
+        contentValues.put(HabitContract.SQLHabitContract.COLUMN_NAME_COMPLETED, completed);
+        contentValues.put(HabitContract.SQLHabitContract.COLUMN_NAME_EXPECTED, expected);
 
         //the following method call will replace the row based on the unique identifier which in
         // this case is the id
-        db.update(SQLHabitContract.TABLE_NAME, contentValues, "_ID = ?",new String[]{id});
+        db.update(HabitContract.SQLHabitContract.TABLE_NAME, contentValues, "_ID = ?", new String[]{id});
         return true;
     }
 
@@ -103,22 +104,22 @@ public class HabitDBHelper extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getWritableDatabase();
 
         //the following deleted a row of data according to the given id
-        return db.delete(SQLHabitContract.TABLE_NAME, "_ID = ?", new String[]{id});
+        return db.delete(HabitContract.SQLHabitContract.TABLE_NAME, "_ID = ?", new String[]{id});
     }
 
     public Integer deleteAllData(SQLiteDatabase db){
 
         //the following will delete all the data in the table
-        return db.delete(SQLHabitContract.TABLE_NAME, "1", null);    // will return the count of deleted rows
+        return db.delete(HabitContract.SQLHabitContract.TABLE_NAME, "1", null);    // will return the count of deleted rows
     }
 
     public Cursor readData(String title) {
         SQLiteDatabase db = this.getWritableDatabase();
         //a cursor object allows for random read and write, this code allows us to store all of the
         // table data into the cursor res and return it to where the method was called to be shown
-        Cursor res = db.query(SQLHabitContract.TABLE_NAME, new String[]{SQLHabitContract._ID,
-                        SQLHabitContract.COLUMN_NAME_COMPLETED, SQLHabitContract.COLUMN_NAME_EXPECTED},
-                SQLHabitContract.COLUMN_NAME_TITLE + " like " + "'%" + title + "%'", null, null, null, null);
+        Cursor res = db.query(HabitContract.SQLHabitContract.TABLE_NAME, new String[]{HabitContract.SQLHabitContract._ID,
+                        HabitContract.SQLHabitContract.COLUMN_NAME_COMPLETED, HabitContract.SQLHabitContract.COLUMN_NAME_EXPECTED},
+                HabitContract.SQLHabitContract.COLUMN_NAME_TITLE + " like " + "'%" + title + "%'", null, null, null, null);
 
         StringBuffer buffer = new StringBuffer();
         while (res.moveToNext()) {
@@ -133,19 +134,11 @@ public class HabitDBHelper extends SQLiteOpenHelper{
     }
 
     public void deleteDatabase() {
-        context.deleteDatabase(SQLHabitContract.TABLE_NAME);
+        context.deleteDatabase(HabitContract.SQLHabitContract.TABLE_NAME);
     }
 
     //the contract class by which to setup the table
     //basecolumn will setup two extra columns for _ID and _count
-    public static abstract class SQLHabitContract implements BaseColumns {
 
-        //table name and column names
-        public static final String TABLE_NAME = "habits";
-        public static final String COLUMN_NAME_TITLE = "title";
-        public static final String COLUMN_NAME_COMPLETED = "completed";
-        public static final String COLUMN_NAME_EXPECTED = "expected";
-
-    }
 
 }
